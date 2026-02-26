@@ -1,6 +1,205 @@
 SMODS.GUI = {}
 SMODS.GUI.DynamicUIManager = {}
 
+-- used to properly truncate overflow content inside another overflow content
+SMODS.stencil_stack = {}
+
+function SMODS.push_to_stencil_stack(stencil_fn)
+    assert(type(stencil_fn) == "function", "No stencil function passed to SMODS.push_to_stencil_stack")
+    local old_level = #SMODS.stencil_stack
+	local new_level = old_level + 1
+
+    love.graphics.setStencilTest("equal", old_level)
+	love.graphics.stencil(function()
+		stencil_fn(false)
+	end, "increment", 1, true)
+	love.graphics.setStencilTest("equal", new_level)
+
+	SMODS.stencil_stack[new_level] = stencil_fn
+end
+function SMODS.pop_from_stencil_stack()
+    local old_level = #SMODS.stencil_stack
+	local new_level = old_level - 1
+
+    local stencil_fn = SMODS.stencil_stack[old_level]
+	if not stencil_fn then
+		return
+	end
+
+    love.graphics.setStencilTest("equal", old_level)
+	love.graphics.stencil(function()
+		stencil_fn(true)
+	end, "decrement", 1, true)
+	love.graphics.setStencilTest("equal", new_level)
+
+	SMODS.stencil_stack[old_level] = nil
+end
+function SMODS.reset_stencil_stack()
+    EMPTY(SMODS.stencil_stack)
+    love.graphics.setStencilTest()
+end
+
+local gameDrawRef = Game.draw
+function Game:draw(...)
+    SMODS.reset_stencil_stack()
+    gameDrawRef(self, ...)
+end
+
+--
+
+local uieDrawChildrenRef = UIElement.draw_children
+function UIElement:draw_children(...)
+	local stenciled = false
+	if self.states.visible and self.config and self.config.no_overflow then
+        -- draw stencil for overflow container
+		stenciled = true
+		SMODS.push_to_stencil_stack(function(exit)
+			prep_draw(self, 1)
+			love.graphics.scale(1 / G.TILESIZE)
+			love.graphics.setColor(0, 0, 0, 1)
+
+			if self.config.r and self.VT.w > 0.01 then
+				self:draw_pixellated_rect("fill", 0)
+			else
+				love.graphics.rectangle("fill", 0, 0, self.VT.w * G.TILESIZE, self.VT.h * G.TILESIZE)
+			end
+
+			love.graphics.pop()
+		end)
+	end
+	uieDrawChildrenRef(self, ...)
+    -- cancel stencil for overflow container
+	if stenciled then SMODS.pop_from_stencil_stack() end
+end
+
+
+-- collision check
+function Node:inside_overflow_boundaries(point)
+    -- Use cached value if present
+	if self.overflow_check_timer == G.TIMERS.REAL then
+		return self.overflow_check_result or false
+	end
+	self.overflow_check_timer = G.TIMERS.REAL
+    local r = true
+
+    -- No parent = no overflow can be done so collide as usual
+    if not self.parent then r = true
+    -- If parent has overflow then we should check do we collide with it and if not, all children in it cannot be collided too
+    elseif self.parent.config and self.parent.config.no_overflow and not Node.collides_with_point(self.parent, point) then r = false
+    -- Otherwise process all parents looking for first non-collideable overflow
+    else r = Node.inside_overflow_boundaries(self.parent, point) end
+
+    self.overflow_check_result = r
+    return r
+end
+
+--
+
+
+SMODS.UIScrollBox = UIBox:extend()
+function SMODS.UIScrollBox:init(args)
+	args.content = args.content or {}
+	args.container = args.container or {}
+	args.overflow = args.overflow or {}
+
+	self.scroll_args = args
+	self.scroll_progress = args.progress or { x = 0, y = 0 }
+	self.scroll_offset = args.offset or { x = 0, y = 0 }
+	self.scroll_sync_mode = args.sync_mode or "progress"
+
+	if args.content and args.content.is and args.content:is(Object) then
+		self.content = args.content
+	else
+		self.content = UIBox(args.content)
+	end
+
+    args.container.config = args.container.config or {}
+	args.container.config.align = args.container.config.align or "cm"
+	args.container.config.offset = args.container.config.offset or { x = 0, y = 0 }
+    args.container.node_config = args.container.node_config or {}
+    args.container.node_config.colour = args.container.node_config.colour or G.C.CLEAR
+	args.container.definition = {
+		n = G.UIT.ROOT,
+		config = args.container.node_config,
+		nodes = {
+			{
+				n = G.UIT.O,
+				config = {
+					object = self.content,
+				},
+			},
+		},
+	}
+	self.content_container = UIBox(args.container)
+
+    args.overflow.config = args.overflow.config or {}
+    args.overflow.node_config = args.overflow.node_config or {}
+    args.overflow.node_config.colour = args.overflow.node_config.colour or G.C.CLEAR
+    args.overflow.node_config.no_overflow = true
+	args.overflow.definition = {
+		n = G.UIT.ROOT,
+		config = args.overflow.node_config,
+		nodes = {
+			{
+				n = G.UIT.O,
+				config = {
+					object = self.content_container,
+				},
+			},
+		},
+	}
+
+	UIBox.init(self, args.overflow)
+
+	self:sync_scroll(0, true)
+end
+-- Returns distance content overflows in both directions
+function SMODS.UIScrollBox:get_scroll_distance()
+	return math.max(0, self.content_container.T.w - self.T.w), math.max(0, self.content_container.T.h - self.T.h)
+end
+-- Update offset to match progress
+function SMODS.UIScrollBox:sync_scroll_offset()
+	local dx, dy = self:get_scroll_distance()
+	self.scroll_offset.x = dx * (self.scroll_progress.x or 0)
+	self.scroll_offset.y = dy * (self.scroll_progress.y or 0)
+end
+-- Update progress to match offset
+function SMODS.UIScrollBox:sync_scroll_progress()
+	local dx, dy = self:get_scroll_distance()
+	self.scroll_progress.x = (dx == 0 and 0) or ((self.offset.x or 0) / dx)
+	self.scroll_progress.y = (dy == 0 and 0) or ((self.offset.y or 0) / dy)
+end
+-- Set new value for offset table
+function SMODS.UIScrollBox:set_scroll_offset(t)
+	self.scroll_offset = t or {}
+	self:sync_scroll_progress()
+end
+-- Set new value for progress table
+function SMODS.UIScrollBox:set_scroll_progress(t)
+	self.scroll_progress = t or {}
+	self:sync_scroll_offset()
+end
+-- Sync things
+function SMODS.UIScrollBox:sync_scroll(dt, init)
+	if self.scroll_sync_mode == "none" then
+	elseif self.scroll_sync_mode == "offset" then
+		self:sync_scroll_progress()
+	else
+		self:sync_scroll_offset()
+	end
+	self.content_container.config.offset.x = -(self.scroll_offset.x or 0)
+	self.content_container.config.offset.y = -(self.scroll_offset.y or 0)
+end
+function SMODS.UIScrollBox:update(dt)
+	if self.scroll_args.scroll_move then
+		self.scroll_args.scroll_move(self, dt)
+	end
+	self:sync_scroll(dt)
+	UIBox.update(self, dt)
+end
+
+--
+
 function STR_UNPACK(str)
     local chunk, err = loadstring(str)
     if chunk then
