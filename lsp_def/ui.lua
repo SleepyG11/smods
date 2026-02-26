@@ -3,6 +3,9 @@
 SMODS.GUI = {}
 SMODS.GUI.DynamicUIManager = {}
 
+--- @type table<function>
+SMODS.stencil_stack = {}
+
 ---@type string|"achievements"|"config"|"credits"|"mod_desc"|"additions"
 SMODS.LAST_SELECTED_MOD_TAB = ""
 
@@ -53,6 +56,7 @@ G.UIT = {
 ---@field vert? boolean Sets if the text is drawn vertically.
 ---@field object? Node Object to render.
 ---@field role? "Major"|"Minor"|"Glued" Sets object's role type.
+---@field no_overflow? boolean Renders node as overflow container: constrain it's size, truncate drawing and prevent colliding child nodes which go outside of parent's boundaries
 
 --- Internal class for annotating UIBox/UIElement tables before being turned into objects.
 ---@class UINode: table
@@ -61,6 +65,17 @@ G.UIT = {
 ---@field nodes? UINode[] Child UINodes
 
 -- UI Functions
+
+---@param stencil_fn fun(exit?: boolean)
+--- Add new stencil to stencil stack; result stencil is sum of all stencils in stack
+function SMODS.push_to_stencil_stack(stencil_fn) end
+
+--- Discard last applied stencil in stack
+function SMODS.pop_from_stencil_stack() end
+
+--- Cleanup stencil stack
+function SMODS.reset_stencil_stack() end
+
 ---@param str string
 ---@return any
 --- Unpacks provided string. 

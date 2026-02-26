@@ -153,33 +153,27 @@ function SMODS.UIScrollBox:init(args)
 
 	self:sync_scroll(0, true)
 end
--- Returns distance content overflows in both directions
 function SMODS.UIScrollBox:get_scroll_distance()
 	return math.max(0, self.content_container.T.w - self.T.w), math.max(0, self.content_container.T.h - self.T.h)
 end
--- Update offset to match progress
 function SMODS.UIScrollBox:sync_scroll_offset()
 	local dx, dy = self:get_scroll_distance()
 	self.scroll_offset.x = dx * (self.scroll_progress.x or 0)
 	self.scroll_offset.y = dy * (self.scroll_progress.y or 0)
 end
--- Update progress to match offset
 function SMODS.UIScrollBox:sync_scroll_progress()
 	local dx, dy = self:get_scroll_distance()
 	self.scroll_progress.x = (dx == 0 and 0) or ((self.offset.x or 0) / dx)
 	self.scroll_progress.y = (dy == 0 and 0) or ((self.offset.y or 0) / dy)
 end
--- Set new value for offset table
 function SMODS.UIScrollBox:set_scroll_offset(t)
 	self.scroll_offset = t or {}
 	self:sync_scroll_progress()
 end
--- Set new value for progress table
 function SMODS.UIScrollBox:set_scroll_progress(t)
 	self.scroll_progress = t or {}
 	self:sync_scroll_offset()
 end
--- Sync things
 function SMODS.UIScrollBox:sync_scroll(dt, init)
 	if self.scroll_sync_mode == "none" then
 	elseif self.scroll_sync_mode == "offset" then
