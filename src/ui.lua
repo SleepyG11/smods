@@ -75,11 +75,12 @@ end
 
 -- collision check
 function Node:inside_overflow_boundaries(point)
-    -- Use cached value if present
-	if self.overflow_check_timer == G.TIMERS.REAL then
+    -- Use cached value if present for current point
+	if self.overflow_check_timer == G.TIMERS.REAL and self.overflow_check_point == point then
 		return self.overflow_check_result or false
 	end
 	self.overflow_check_timer = G.TIMERS.REAL
+    self.overflow_check_point = point
     local r = true
 
     -- No parent = no overflow can be done so collide as usual
