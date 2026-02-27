@@ -38,6 +38,13 @@ function SMODS.reset_stencil_stack()
     EMPTY(SMODS.stencil_stack)
     love.graphics.setStencilTest()
 end
+function SMODS.reload_stencil_stack()
+    local stack_snapshot = SMODS.shallow_copy(SMODS.stencil_stack)
+    SMODS.reset_stencil_stack()
+    for _, stencil_fn in ipairs(stack_snapshot) do
+        SMODS.push_to_stencil_stack(stencil_fn)
+    end
+end
 
 local gameDrawRef = Game.draw
 function Game:draw(...)
