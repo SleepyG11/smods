@@ -37,6 +37,7 @@ end
 function SMODS.reset_stencil_stack()
     EMPTY(SMODS.stencil_stack)
     love.graphics.setStencilTest()
+    love.graphics.stencil(function() end)
 end
 function SMODS.reload_stencil_stack()
     local stack_snapshot = SMODS.shallow_copy(SMODS.stencil_stack)
