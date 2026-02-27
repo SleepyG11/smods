@@ -51,7 +51,7 @@ if node.config.no_overflow then fac = _scale or 1 end
 match_indent = true
 
 # Limit overflow container size during filling
-# UIBox:set_wh()
+# UIElement:set_wh()
 [[patches]]
 [patches.pattern]
 target = "engine/ui.lua"
