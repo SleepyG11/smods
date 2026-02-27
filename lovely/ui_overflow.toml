@@ -50,6 +50,29 @@ if node.config.no_overflow then fac = _scale or 1 end
 '''
 match_indent = true
 
+# Limit overflow container size during filling
+# UIBox:set_wh()
+[[patches]]
+[patches.pattern]
+target = "engine/ui.lua"
+pattern = '''if w.UIT == G.UIT.C then w.T.h = _max_h end'''
+position = "after"
+payload = '''
+if w.config and w.config.no_overflow then
+    if w.config.w then
+        w.T.w = w.config.w
+    elseif w.config.maxw then
+        w.T.w = math.min(w.T.w, w.config.maxw)
+    end
+    if w.config.h then
+        w.T.h = w.config.h
+    elseif w.config.maxh then
+        w.T.h = math.min(w.T.h, w.config.maxh)
+    end
+end
+'''
+match_indent = true
+
 # Exclude overflowed elements from colliding
 # Controller:get_cursor_collision()
 [[patches]]
