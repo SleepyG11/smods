@@ -104,7 +104,6 @@ end
 
 --
 
-
 SMODS.UIScrollBox = UIBox:extend()
 function SMODS.UIScrollBox:init(args)
     args = SMODS.merge_defaults(args, { content = {}, container = {}, overflow = {}, sync_mode = "progress" })
