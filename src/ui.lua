@@ -104,17 +104,16 @@ end
 
 --
 
-
 SMODS.UIScrollBox = UIBox:extend()
 function SMODS.UIScrollBox:init(args)
-	args.content = args.content or {}
-	args.container = args.container or {}
-	args.overflow = args.overflow or {}
+    args = SMODS.merge_defaults(args, { content = {}, container = {}, overflow = {}, sync_mode = "progress" })
+    args.progress = SMODS.merge_defaults(args.progress, { x = 0, y = 0 })
+    args.offset = SMODS.merge_defaults(args.offset, { x = 0, y = 0 })
 
 	self.scroll_args = args
-	self.scroll_progress = args.progress or { x = 0, y = 0 }
-	self.scroll_offset = args.offset or { x = 0, y = 0 }
-	self.scroll_sync_mode = args.sync_mode or "progress"
+	self.scroll_progress = args.progress
+	self.scroll_offset = args.offset
+	self.scroll_sync_mode = args.sync_mode
 
 	if args.content and args.content.is and args.content:is(Object) then
 		self.content = args.content
@@ -122,11 +121,8 @@ function SMODS.UIScrollBox:init(args)
 		self.content = UIBox(args.content)
 	end
 
-    args.container.config = args.container.config or {}
-	args.container.config.align = args.container.config.align or "cm"
-	args.container.config.offset = args.container.config.offset or { x = 0, y = 0 }
-    args.container.node_config = args.container.node_config or {}
-    args.container.node_config.colour = args.container.node_config.colour or G.C.CLEAR
+    args.container.config = SMODS.merge_defaults(args.container.config, { align = "cm", offset = { x = 0, y = 0 } })
+    args.container.node_config = SMODS.merge_defaults(args.container.node_config, { colour = G.C.CLEAR })
 	args.container.definition = {
 		n = G.UIT.ROOT,
 		config = args.container.node_config,
@@ -141,10 +137,8 @@ function SMODS.UIScrollBox:init(args)
 	}
 	self.content_container = UIBox(args.container)
 
-    args.overflow.config = args.overflow.config or {}
-    args.overflow.node_config = args.overflow.node_config or {}
-    args.overflow.node_config.colour = args.overflow.node_config.colour or G.C.CLEAR
-    args.overflow.node_config.no_overflow = true
+    args.overflow.config = SMODS.merge_defaults(args.overflow.config, {})
+    args.overflow.node_config = SMODS.merge_defaults(args.overflow.node_config, { colour = G.C.CLEAR, no_overflow = true })
 	args.overflow.definition = {
 		n = G.UIT.ROOT,
 		config = args.overflow.node_config,
@@ -176,19 +170,18 @@ function SMODS.UIScrollBox:sync_scroll_progress()
 	self.scroll_progress.y = (dy == 0 and 0) or ((self.offset.y or 0) / dy)
 end
 function SMODS.UIScrollBox:set_scroll_offset(t)
-	self.scroll_offset = t or {}
+	self.scroll_offset = SMODS.merge_defaults(t, { x = 0, y = 0 })
 	self:sync_scroll_progress()
 end
 function SMODS.UIScrollBox:set_scroll_progress(t)
-	self.scroll_progress = t or {}
+	self.scroll_progress = SMODS.merge_defaults(t, { x = 0, y = 0 })
 	self:sync_scroll_offset()
 end
 function SMODS.UIScrollBox:sync_scroll(dt, init)
-	if self.scroll_sync_mode == "none" then
+	if self.scroll_sync_mode == "progress" then
+        self:sync_scroll_offset()
 	elseif self.scroll_sync_mode == "offset" then
 		self:sync_scroll_progress()
-	else
-		self:sync_scroll_offset()
 	end
 	self.content_container.config.offset.x = -(self.scroll_offset.x or 0)
 	self.content_container.config.offset.y = -(self.scroll_offset.y or 0)
