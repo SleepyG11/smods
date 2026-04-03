@@ -15,7 +15,6 @@ function SMODS.push_to_stencil_stack(stencil_fn)
 
     SMODS.stencil_stack[new_level] = stencil_fn
 
-    love.graphics.setStencilTest("equal", old_level)
 	love.graphics.stencil(function()
 		stencil_fn(false)
 	end, "increment", 1, true)
@@ -35,7 +34,6 @@ function SMODS.pop_from_stencil_stack()
     if new_level == 0 then
         SMODS.reset_stencil_stack()
     else
-        love.graphics.setStencilTest("equal", old_level)
         love.graphics.stencil(function()
             stencil_fn(true)
         end, "decrement", 1, true)
