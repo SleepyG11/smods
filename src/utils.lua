@@ -3839,7 +3839,7 @@ end
 
 
 function SMODS.resolve_ui_shaders(shader, send)
-    if not shader then return { { no_shader = true } } end
+    if not shader then return { false } end
     local shaders = {}
     -- simple single shader
     if type(shader) == "string" then
@@ -3863,7 +3863,7 @@ function SMODS.resolve_ui_shaders(shader, send)
         end
     end
     if #shaders == 0 then
-        return { { no_shader = true } }
+        return { false }
     end
     return shaders
 end
