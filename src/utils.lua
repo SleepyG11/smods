@@ -3839,6 +3839,7 @@ end
 
 
 function SMODS.resolve_ui_shaders(shader, send)
+    if not shader then return { { no_shader = true } } end
     local shaders = {}
     -- simple single shader
     if type(shader) == "string" then
@@ -3868,7 +3869,6 @@ function SMODS.resolve_ui_shaders(shader, send)
 end
 function SMODS.set_ui_element_shader(element, input_args)
     input_args = input_args or {}
-    local can_apply = input_args.can_apply
     local shader, send = input_args.shader, input_args.send
     local default_send_func = input_args.default_send_func or function() end
     local extra = input_args.extra or {}
@@ -3879,7 +3879,7 @@ function SMODS.set_ui_element_shader(element, input_args)
     }
 	local shadered = true
     
-    if not can_apply or not shader or shader == "none" or shader == "dissolve" then
+    if not shader or shader == "none" or shader == "dissolve" then
         shadered = false
 	elseif send then
 		for _, v in ipairs(send) do
@@ -3919,8 +3919,8 @@ function SMODS.set_ui_element_shader(element, input_args)
 end
 
 function DynaText:set_letter_shader(shader, send, shadow, letter)
+    if not shader and not self.shadered then return end
     SMODS.set_ui_element_shader(self, {
-        can_apply = self.states.visible and letter,
         shader = shader,
         send = send,
         extra = { shadow, letter },
@@ -3942,8 +3942,8 @@ function DynaText:set_letter_shader(shader, send, shadow, letter)
     })
 end
 function UIElement:set_element_shader(shader, send, shadow)
+    if not shader and not self.shadered then return end
     SMODS.set_ui_element_shader(self, {
-        can_apply = self.states.visible,
         shader = shader,
         send = send,
         extra = { shadow },
@@ -3957,8 +3957,8 @@ function UIElement:set_element_shader(shader, send, shadow)
     })
 end
 function UIElement:set_text_shader(shader, send, shadow)
+    if not shader and not self.shadered then return end
     SMODS.set_ui_element_shader(self, {
-        can_apply = self.states.visible,
         shader = shader,
         send = send,
         extra = { shadow },
