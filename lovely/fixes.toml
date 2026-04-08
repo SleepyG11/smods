@@ -166,7 +166,6 @@ pattern = "self.config.center = center"
 position = 'at'
 match_indent = true
 payload = '''
-if delay_sprites == 'quantum' then self.from_quantum = true end
 local was_added_to_deck = false
 if self.added_to_deck and old_center and not self.debuff then
     self:remove_from_deck()
@@ -189,7 +188,7 @@ payload = '''
 if was_added_to_deck and not self.debuff then
     self:add_to_deck()
 end
-self.from_quantum = nil'''
+'''
 
 
 ## set_ability() transfers over old fields
