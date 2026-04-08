@@ -2737,52 +2737,54 @@ function Card:quantum_set_ability(center, reset_keys)
     if self.ability and old_center and old_center.config.bonus then
         self.ability.bonus = self.ability.bonus - old_center.config.bonus
     end
+
+    self.ARGS.smods_quantum_ability = self.ARGS.smods_quantum_ability or {}
+    local new_ability = self.ARGS.smods_quantum_ability
+
+    new_ability.name = center.name
+    new_ability.effect = center.effect
+    new_ability.set = center.set
+    new_ability.mult = center.config.mult or 0
+    new_ability.h_mult = center.config.h_mult or 0
+    new_ability.h_x_mult = center.config.h_x_mult or 0
+    new_ability.h_dollars = center.config.h_dollars or 0
+    new_ability.p_dollars = center.config.p_dollars or 0
+    new_ability.t_mult = center.config.t_mult or 0
+    new_ability.t_chips = center.config.t_chips or 0
+    new_ability.x_mult = center.config.Xmult or center.config.x_mult or 1
+    new_ability.h_chips = center.config.h_chips or 0
+    new_ability.x_chips = center.config.x_chips or 1
+    new_ability.h_x_chips = center.config.h_x_chips or 1
+    new_ability.repetitions = center.config.repetitions or 0
+    new_ability.h_size = center.config.h_size or 0
+    new_ability.d_size = center.config.d_size or 0
+    new_ability.extra = copy_table(center.config.extra) or nil
+    new_ability.extra_value = 0
+    new_ability.type = center.config.type or ''
+    new_ability.order = center.order or nil
+    new_ability.forced_selection = self.ability and self.ability.forced_selection or nil
+    new_ability.perma_bonus = self.ability and self.ability.perma_bonus or 0
+    new_ability.perma_x_chips = self.ability and self.ability.perma_x_chips or 0
+    new_ability.perma_mult = self.ability and self.ability.perma_mult or 0
+    new_ability.perma_x_mult = self.ability and self.ability.perma_x_mult or 0
+    new_ability.perma_h_chips = self.ability and self.ability.perma_h_chips or 0
+    new_ability.perma_h_x_chips = self.ability and self.ability.perma_h_x_chips or 0
+    new_ability.perma_h_mult = self.ability and self.ability.perma_h_mult or 0
+    new_ability.perma_h_x_mult = self.ability and self.ability.perma_h_x_mult or 0
+    new_ability.perma_p_dollars = self.ability and self.ability.perma_p_dollars or 0
+    new_ability.perma_h_dollars = self.ability and self.ability.perma_h_dollars or 0
+    new_ability.perma_repetitions = self.ability and self.ability.perma_repetitions or 0
+    new_ability.card_limit = self.ability and self.ability.card_limit or 0
+    new_ability.extra_slots_used = self.ability and self.ability.extra_slots_used or 0
+    new_ability.perma_score = self.ability and self.ability.perma_score or 0
+    new_ability.perma_h_score = self.ability and self.ability.perma_h_score or 0
+    new_ability.perma_x_score = self.ability and self.ability.perma_x_score or 0
+    new_ability.perma_h_x_score = self.ability and self.ability.perma_h_x_score or 0
+    new_ability.perma_blind_size = self.ability and self.ability.perma_blind_size or 0
+    new_ability.perma_h_blind_size = self.ability and self.ability.perma_h_blind_size or 0
+    new_ability.perma_x_blind_size = self.ability and self.ability.perma_x_blind_size or 0
+    new_ability.perma_h_x_blind_size = self.ability and self.ability.perma_h_x_blind_size or 0
     
-    local new_ability = {
-        name = center.name,
-        effect = center.effect,
-        set = center.set,
-        mult = center.config.mult or 0,
-        h_mult = center.config.h_mult or 0,
-        h_x_mult = center.config.h_x_mult or 0,
-        h_dollars = center.config.h_dollars or 0,
-        p_dollars = center.config.p_dollars or 0,
-        t_mult = center.config.t_mult or 0,
-        t_chips = center.config.t_chips or 0,
-        x_mult = center.config.Xmult or center.config.x_mult or 1,
-        h_chips = center.config.h_chips or 0,
-        x_chips = center.config.x_chips or 1,
-        h_x_chips = center.config.h_x_chips or 1,
-        repetitions = center.config.repetitions or 0,
-        h_size = center.config.h_size or 0,
-        d_size = center.config.d_size or 0,
-        extra = copy_table(center.config.extra) or nil,
-        extra_value = 0,
-        type = center.config.type or '',
-        order = center.order or nil,
-        forced_selection = self.ability and self.ability.forced_selection or nil,
-        perma_bonus = self.ability and self.ability.perma_bonus or 0,
-        perma_x_chips = self.ability and self.ability.perma_x_chips or 0,
-        perma_mult = self.ability and self.ability.perma_mult or 0,
-        perma_x_mult = self.ability and self.ability.perma_x_mult or 0,
-        perma_h_chips = self.ability and self.ability.perma_h_chips or 0,
-        perma_h_x_chips = self.ability and self.ability.perma_h_x_chips or 0,
-        perma_h_mult = self.ability and self.ability.perma_h_mult or 0,
-        perma_h_x_mult = self.ability and self.ability.perma_h_x_mult or 0,
-        perma_p_dollars = self.ability and self.ability.perma_p_dollars or 0,
-        perma_h_dollars = self.ability and self.ability.perma_h_dollars or 0,
-        perma_repetitions = self.ability and self.ability.perma_repetitions or 0,
-        card_limit = self.ability and self.ability.card_limit or 0,
-        extra_slots_used = self.ability and self.ability.extra_slots_used or 0,
-        perma_score = self.ability and self.ability.perma_score or 0,
-        perma_h_score = self.ability and self.ability.perma_h_score or 0,
-        perma_x_score = self.ability and self.ability.perma_x_score or 0,
-        perma_h_x_score = self.ability and self.ability.perma_h_x_score or 0,
-        perma_blind_size = self.ability and self.ability.perma_blind_size or 0,
-        perma_h_blind_size = self.ability and self.ability.perma_h_blind_size or 0,
-        perma_x_blind_size = self.ability and self.ability.perma_x_blind_size or 0,
-        perma_h_x_blind_size = self.ability and self.ability.perma_h_x_blind_size or 0,
-    }
     self.ability = self.ability or {}
     new_ability.extra_value = nil
     new_ability.debuff_sources = {}
@@ -2850,5 +2852,6 @@ function Card:quantum_set_ability(center, reset_keys)
         obj:set_ability(self, false, nil)
     end
 
+    EMPTY(new_ability)
     self.from_quantum = nil
 end
