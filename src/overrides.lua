@@ -2711,7 +2711,7 @@ function add_tag(_tag)
 	add_tag_ref(_tag)
 end
 
-function Card:quantum_set_ability(center)
+function Card:quantum_set_ability(center, reset_keys)
     SMODS.enh_cache:write(self, nil)
 
     if self.ability then
@@ -2796,13 +2796,6 @@ function Card:quantum_set_ability(center)
     self.ability.extra_slots_used = self.ability.extra_slots_used + (center.config.extra_slots_used or 0)
 
     -- reset keys do not persist on ability change
-    local reset_keys = {'name', 'effect', 'set', 'extra', 'played_this_ante', 'perma_debuff'}
-    for _, mod in ipairs(SMODS.mod_list) do
-        if mod.set_ability_reset_keys then
-            local keys = mod.set_ability_reset_keys()
-            for _, v in pairs(keys) do table.insert(reset_keys, v) end
-        end
-    end
     for _, k in ipairs(reset_keys) do
         self.ability[k] = new_ability[k]
     end
@@ -2850,19 +2843,7 @@ function Card:quantum_set_ability(center)
         self.ability.loyalty_remaining = self.ability.extra.every
     end
 
-    self.base_cost = center.cost or 1
-
     self.ability.hands_played_at_create = G.GAME and G.GAME.hands_played or 0
-
-    self.label = center.label or self.config.card and self.config.card.label or self.ability.set
-    if self.ability.set == 'Joker' then self.label = self.ability.name end
-    if self.ability.set == 'Edition' then self.label = self.ability.name end
-    if self.ability.consumeable then self.label = self.ability.name end
-    if self.ability.set == 'Voucher' then self.label = self.ability.name end
-    if self.ability.set == 'Booster' then
-        self.label = self.ability.name
-        self.mouse_damping = 1.5
-    end
 
     local obj = self.config.center
     if obj.set_ability and type(obj.set_ability) == 'function' then

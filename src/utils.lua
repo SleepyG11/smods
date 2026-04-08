@@ -1096,8 +1096,17 @@ function SMODS.calculate_quantum_enhancements(card, effects, context)
         end
     end
     table.sort(extra_enhancements_list, function(a, b) return G.P_CENTERS[a].order < G.P_CENTERS[b].order end)
+
+    local reset_keys = {'name', 'effect', 'set', 'extra', 'played_this_ante', 'perma_debuff'}
+    for _, mod in ipairs(SMODS.mod_list) do
+        if mod.set_ability_reset_keys then
+            local keys = mod.set_ability_reset_keys()
+            for _, v in pairs(keys) do table.insert(reset_keys, v) end
+        end
+    end
+
     for _, k in ipairs(extra_enhancements_list) do
-        card:quantum_set_ability(G.P_CENTERS[k])
+        card:quantum_set_ability(G.P_CENTERS[k], reset_keys)
         card.ability.extra_enhancement = k
         local eval = eval_card(card, context)
         table.insert(effects, eval)
