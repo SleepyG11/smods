@@ -3838,9 +3838,15 @@ function SMODS.get_badge_text_colour(key)
 end
 
 
-function SMODS.resolve_ui_shaders(shader, send)
-    if not shader then return { false } end
-    local shaders = {}
+function SMODS.resolve_ui_shaders(node, shader, send)
+    node.resolved_ui_shaders = node.resolved_ui_shaders or {}
+    local shaders = node.resolved_ui_shaders
+    EMPTY(shaders)
+
+    if not shader then
+        shaders[#shaders+1] = false
+        return shaders
+    end
     -- simple single shader
     if type(shader) == "string" then
         shaders[#shaders+1] = { shader = shader, send = send }
@@ -3863,7 +3869,8 @@ function SMODS.resolve_ui_shaders(shader, send)
         end
     end
     if #shaders == 0 then
-        return { false }
+        shaders[#shaders+1] = false
+        return shaders
     end
     return shaders
 end

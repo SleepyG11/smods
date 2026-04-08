@@ -232,7 +232,7 @@ if self.UIT ~= G.UIT.T then
 end
 end
 
-local element_shaders = SMODS.resolve_ui_shaders(self.states.visible and self.UIT ~= G.UIT.T and self.config.shader, nil)
+local element_shaders = SMODS.resolve_ui_shaders(self, self.states.visible and self.UIT ~= G.UIT.T and self.config.shader, nil)
 for _, v in ipairs(element_shaders) do
     if v then
         _draw(self, v.shader, v.send)
@@ -259,7 +259,7 @@ love.graphics.draw(
 )"""
 position = "at"
 payload = """
-local text_shaders = SMODS.resolve_ui_shaders(self.states.visible and self.config.shader, nil)
+local text_shaders = SMODS.resolve_ui_shaders(self, self.states.visible and self.config.shader, nil)
 for _, v in ipairs(text_shaders) do
     if v then self:set_text_shader(v.shader, v.send, true) end
     love.graphics.draw(
@@ -291,7 +291,7 @@ love.graphics.draw(
 )"""
 position = "at"
 payload = """
-local text_shaders = SMODS.resolve_ui_shaders(self.states.visible and self.config.shader, nil)
+local text_shaders = SMODS.resolve_ui_shaders(self, self.states.visible and self.config.shader, nil)
 for _, v in ipairs(text_shaders) do
     if v then self:set_text_shader(v.shader, v.send, false) end
     love.graphics.draw(
