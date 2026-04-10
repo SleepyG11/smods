@@ -2692,6 +2692,7 @@ end
 
 local set_ability = Card.set_ability
 function Card:set_ability(center, initial, delay_sprites)
+    if delay_sprites == "quantum" then return self:quantum_set_ability(center) end
 	local old_center = self.config.center
 	set_ability(self, center, initial, delay_sprites)
 	if not initial and (G.STATE ~= G.STATES.SMODS_BOOSTER_OPENED and G.STATE ~= G.STATES.SHOP and not G.SETTINGS.paused or G.TAROT_INTERRUPT) then
@@ -2711,7 +2712,7 @@ function add_tag(_tag)
 	add_tag_ref(_tag)
 end
 
-function Card:quantum_set_ability(center, reset_keys)
+function Card:quantum_set_ability(center)
     SMODS.enh_cache:write(self, nil)
 
     if self.ability then
@@ -2797,8 +2798,9 @@ function Card:quantum_set_ability(center, reset_keys)
     self.ability.card_limit = self.ability.card_limit + (center.config.card_limit or 0)
     self.ability.extra_slots_used = self.ability.extra_slots_used + (center.config.extra_slots_used or 0)
 
+
     -- reset keys do not persist on ability change
-    for _, k in ipairs(reset_keys) do
+    for _, k in ipairs(SMODS.get_ability_reset_keys(self) or {}) do
         self.ability[k] = new_ability[k]
     end
 
