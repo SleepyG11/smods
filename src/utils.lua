@@ -3556,6 +3556,7 @@ function CardArea:handle_card_limit()
             self.config.card_limits.extra_slots_used = self:count_property('extra_slots_used')
         end
         self.config.card_count = #self.cards + self.config.card_limits.extra_slots_used
+        if self == G.hand then check_for_unlock({type = 'min_hand_size'}) end
 
         if G.hand and self == G.hand and (self.config.card_count or 0) + (SMODS.cards_to_draw or 0) < (self.config.card_limits.total_slots or 0) then
             if G.STATE == G.STATES.DRAW_TO_HAND and not SMODS.blind_modifies_draw(G.GAME.blind.config.blind.key) and not SMODS.draw_queued then
@@ -3784,7 +3785,7 @@ end
 
 -- Used for SMODS.ScreenShader, just to save lines re-creating canvases when relevant
 function SMODS.create_canvas()
-    local w, h = love.graphics.getPixelWidth(), love.graphics.getPixelHeight()
+    local w, h = G.CANVAS:getDimensions()
     local canvas = love.graphics.newCanvas(w, h, { type = '2d', readable = true })
     canvas:setFilter('linear', 'linear')
     return canvas
@@ -3851,8 +3852,15 @@ function SMODS.get_badge_text_colour(key)
 end
 
 
-function SMODS.resolve_ui_shaders(shader, send)
-    local shaders = {}
+function SMODS.resolve_ui_shaders(node, shader, send)
+    node.resolved_ui_shaders = node.resolved_ui_shaders or {}
+    local shaders = node.resolved_ui_shaders
+    EMPTY(shaders)
+
+    if not shader then
+        shaders[#shaders+1] = false
+        return shaders
+    end
     -- simple single shader
     if type(shader) == "string" then
         shaders[#shaders+1] = { shader = shader, send = send }
@@ -3875,24 +3883,20 @@ function SMODS.resolve_ui_shaders(shader, send)
         end
     end
     if #shaders == 0 then
-        return { { no_shader = true } }
+        shaders[#shaders+1] = false
+        return shaders
     end
     return shaders
 end
 function SMODS.set_ui_element_shader(element, input_args)
     input_args = input_args or {}
-    local can_apply = input_args.can_apply
     local shader, send = input_args.shader, input_args.send
     local default_send_func = input_args.default_send_func or function() end
     local extra = input_args.extra or {}
 
-    local args = {
-        G.TIMERS.REAL/28,
-        G.TIMERS.REAL
-    }
 	local shadered = true
     
-    if not can_apply or not shader or shader == "none" or shader == "dissolve" then
+    if not shader or shader == "none" or shader == "dissolve" then
         shadered = false
 	elseif send then
 		for _, v in ipairs(send) do
@@ -3906,7 +3910,10 @@ function SMODS.set_ui_element_shader(element, input_args)
 	else
 		local key = SMODS.Shaders[shader].original_key
 		
-		G.SHADERS[shader]:send(key, args)
+		G.SHADERS[shader]:send(key, {
+            G.TIMERS.REAL/28,
+            G.TIMERS.REAL
+        })
         default_send_func(element, shader, unpack(extra))
 	end
 
@@ -3932,8 +3939,8 @@ function SMODS.set_ui_element_shader(element, input_args)
 end
 
 function DynaText:set_letter_shader(shader, send, shadow, letter)
+    if not shader and not self.shadered then return end
     SMODS.set_ui_element_shader(self, {
-        can_apply = self.states.visible and letter,
         shader = shader,
         send = send,
         extra = { shadow, letter },
@@ -3955,8 +3962,8 @@ function DynaText:set_letter_shader(shader, send, shadow, letter)
     })
 end
 function UIElement:set_element_shader(shader, send, shadow)
+    if not shader and not self.shadered then return end
     SMODS.set_ui_element_shader(self, {
-        can_apply = self.states.visible,
         shader = shader,
         send = send,
         extra = { shadow },
@@ -3970,8 +3977,8 @@ function UIElement:set_element_shader(shader, send, shadow)
     })
 end
 function UIElement:set_text_shader(shader, send, shadow)
+    if not shader and not self.shadered then return end
     SMODS.set_ui_element_shader(self, {
-        can_apply = self.states.visible,
         shader = shader,
         send = send,
         extra = { shadow },

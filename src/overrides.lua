@@ -733,7 +733,7 @@ function G.UIDEF.deck_preview(args)
 				if v.base.suit == kk and not v_ns then suit_counts[kk] = suit_counts[kk] + 1 end
 				if v:is_suit(kk) then mod_suit_counts[kk] = mod_suit_counts[kk] + 1 end
 			end
-			if SUITS[v.base.suit][v.base.value] and not v_nr and not v_ns then
+			if (SUITS[v.base.suit] or {})[v.base.value] and not v_nr and not v_ns then
 				table.insert(SUITS[v.base.suit][v.base.value], v)
 			end
 			if not v_nr then
@@ -795,7 +795,7 @@ function G.UIDEF.deck_preview(args)
 				local _colour = #SUITS[suit][rank] > 0 and flip_col or G.C.UI.TRANSPARENT_LIGHT
 
 				local _col = {n = G.UIT.C, config = {align = "cm", padding = 0.05, minw = _minw + 0.098, minh = _minh }, nodes = {
-					{n = G.UIT.T, config = {text = '' .. #SUITS[suit][rank], colour = _colour, scale = _tscale, shadow = true, lang = G.LANGUAGES['en-us'] } },}}
+					{n = G.UIT.T, config = {text = '' .. #((SUITS[suit] or {})[rank] or {}), colour = _colour, scale = _tscale, shadow = true, lang = G.LANGUAGES['en-us'] } },}}
 				if not hidden_ranks[rank] then table.insert(_row, _col) end
 			end
 			table.insert(deck_tables,
@@ -806,8 +806,8 @@ function G.UIDEF.deck_preview(args)
 
 	for k, v in ipairs(suit_map) do
 		if not hidden_suits[v] then
-			local deckskin = SMODS.DeckSkins[G.SETTINGS.CUSTOM_DECK.Collabs[v]]
-			local palette = deckskin.palette_map and deckskin.palette_map[G.SETTINGS.colour_palettes[v] or ''] or (deckskin.palettes or {})[1]
+			local deckskin = SMODS.DeckSkins[G.SETTINGS.CUSTOM_DECK.Collabs[v]] or {}
+			local palette = (deckskin.palette_map or {})[G.SETTINGS.colour_palettes[v] or ""] or (deckskin.palettes or {})[1]
 			local t_s
 			if palette and palette.suit_icon and palette.suit_icon.atlas then
 				local _x = (v == 'Spades' and 3) or (v == 'Hearts' and 0) or (v == 'Clubs' and 2) or (v == 'Diamonds' and 1)
@@ -2856,4 +2856,12 @@ function Card:quantum_set_ability(center)
 
     EMPTY(new_ability)
     self.from_quantum = nil
+end
+-- Fix visual glitch in deck select
+local g_funcs_change_viewed_back_ref = G.FUNCS.change_viewed_back
+G.FUNCS.change_viewed_back = function(...)
+	for _, card in pairs(G.sticker_card.area.cards) do
+		card.original_T = copy_table(card.T)
+	end
+	return g_funcs_change_viewed_back_ref(...)
 end
