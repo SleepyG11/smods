@@ -264,6 +264,17 @@ end
 function SMODS.SUI.Node:process_config(key, value)
 	SMODS.SUI.config_merge(self, key, value)
 end
+function SMODS.SUI.Node:post_process_input(input)
+	if input.s_config then
+		self.s_config = SMODS.merge_defaults(input.s_config or {}, self.s_config or {}) or {}
+	end
+	if input.s_hooks then
+		self.s_hooks = SMODS.merge_defaults(input.s_hooks or {}, self.s_hooks or {}) or {}
+	end
+	if input.s_init then
+		self.s_init = input.s_init
+	end
+end
 function SMODS.SUI.Node:process_node(index, value)
 	SMODS.SUI.node_merge(self, index, value)
 end
@@ -285,15 +296,6 @@ function SMODS.SUI.Node:process_input(input)
 				children_to_insert[#children_to_insert + 1] = v
 			end
 		end
-		if input.s_config then
-			self.s_config = SMODS.merge_defaults(input.s_config or {}, self.s_config or {}) or {}
-		end
-		if input.s_hooks then
-			self.s_hooks = SMODS.merge_defaults(input.s_hooks or {}, self.s_hooks or {}) or {}
-		end
-		if input.s_init then
-			self.s_init = input.s_init
-		end
 		for k, v in pairs(input) do
 			if SMODS.SUI.special_config_keys[k] then
 			elseif type(k) == "number" then
@@ -302,6 +304,8 @@ function SMODS.SUI.Node:process_input(input)
 				self:process_config(k, v)
 			end
 		end
+
+		self:post_process_config(input)
 
 		local child_index = 0
 		for _, v in ipairs(children_to_insert) do
