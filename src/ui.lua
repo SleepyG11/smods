@@ -277,6 +277,40 @@ end
 
 --
 
+function Moveable:apply_opacity(draw_callback)
+    self.ARGS.opacity_applied = nil
+    if self.config.opacity and self.config.opacity > 0 and self.config.opacity < 1 then
+        local current_canvas = love.graphics.getCanvas()
+        self.ARGS.opacity_applied = self.config.opacity
+        if not self.ARGS.opacity_canvas then
+            self.ARGS.opacity_canvas = love.graphics.newCanvas()
+            self.ARGS.opacity_canvas_w, self.ARGS.opacity_canvas_h = self.ARGS.opacity_canvas:getDimensions()
+        else
+            local cw, ch = current_canvas:getDimensions()
+            if self.ARGS.opacity_canvas_w ~= cw or self.ARGS.opacity_canvas_h ~= ch then
+                self.ARGS.opacity_canvas = love.graphics.newCanvas()
+                self.ARGS.opacity_canvas_w, self.ARGS.opacity_canvas_h = self.ARGS.opacity_canvas:getDimensions()
+            end
+        end
+        love.graphics.setCanvas({ self.ARGS.opacity_canvas, stencil = true })
+        love.graphics.clear(0, 0, 0, 0)
+        SMODS.reload_stencil_stack()
+        draw_callback(self)
+        love.graphics.setCanvas({ current_canvas, stencil = true })
+        SMODS.reload_stencil_stack()
+        love.graphics.setColor(1,1,1,self.ARGS.opacity_applied)
+        love.graphics.push()
+        love.graphics.origin()
+        love.graphics.draw(self.ARGS.opacity_canvas)
+        love.graphics.pop()
+        self.ARGS.opacity_applied = nil
+        return
+    end
+    return draw_callback(self)
+end
+
+--
+
 function STR_UNPACK(str)
     local chunk, err = loadstring(str)
     if chunk then

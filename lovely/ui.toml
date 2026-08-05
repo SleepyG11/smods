@@ -554,3 +554,47 @@ config = {align=('cli'), offset = {x=-0.7,y=0},major = G.ROOM_ATTACH}
 payload = '''
 config = {align=('cli'), offset = {x=-0.7,y=0.4},major = G.ROOM_ATTACH}
 '''
+
+[[patches]]
+[patches.pattern]
+target = 'engine/ui.lua'
+match_indent = true
+position = 'at'
+pattern = '''
+if v.draw_self and not v.config.draw_after then v:draw_self() else v:draw() end
+if v.draw_children then v:draw_children() end 
+if v.draw_self and v.config.draw_after then v:draw_self() else v:draw() end
+'''
+payload = '''
+v:apply_opacity(function()
+    if v.draw_self and not v.config.draw_after then v:draw_self() else v:draw() end
+    if v.draw_children then v:draw_children() end 
+    if v.draw_self and v.config.draw_after then v:draw_self() else v:draw() end
+end)
+'''
+
+[[patches]]
+[patches.pattern]
+target = 'engine/ui.lua'
+match_indent = true
+position = 'at'
+pattern = '''
+self.UIRoot:draw_self()
+self.UIRoot:draw_children()
+for k, v in ipairs(self.draw_layers) do
+    if v.draw_self then v:draw_self() else v:draw() end
+    if v.draw_children then v:draw_children() end
+end
+'''
+payload = '''
+self.UIRoot:apply_opacity(function(self)
+    self:draw_self()
+    self:draw_children()
+end)
+for k, v in ipairs(self.draw_layers) do
+    v:apply_opacity(function()
+        if v.draw_self then v:draw_self() else v:draw() end
+        if v.draw_children then v:draw_children() end
+    end)
+end
+'''
