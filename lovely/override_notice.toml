@@ -265,14 +265,6 @@ position = "before"
 payload = "-- Function overridden by SMODS in src/overrides.lua"
 match_indent = true
 
-[[patches]]
-[patches.pattern]
-target = "functions/misc_functions.lua"
-pattern = "function loc_parse_string(line)"
-position = "before"
-payload = "-- Function overridden by SMODS in src/overrides.lua"
-match_indent = true
-
 # src/ui.lua
 
 [[patches]]
