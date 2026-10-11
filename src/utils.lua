@@ -2870,7 +2870,13 @@ function SMODS.localize_box(lines, args)
     for _, part in ipairs(lines) do
         part.control = {}
         for k, v in pairs(part.control_snapshot) do
-            if not part.condition[k] or args.vars.conditions[tonumber(part.condition[k])] then part.control[k] = v end
+            if part.condition[k] then
+                local conditions = part.condition[k]
+                part.control[k] = conditions.value
+                for _, condition in ipairs(conditions) do
+                    if args.vars.conditions[tonumber(condition.condition)] then part.control[k] = condition.value end
+                end
+            else part.control[k] = v end
         end
 
         if part.control.element then

@@ -3165,8 +3165,13 @@ function loc_parse_string(line)
       elseif _c and char == ':' then _c_gather = true
       elseif _c and not (char == ',' or char == '}') and _c_gather then _c_val = (_c_val or '')..char
       elseif _c and (char == ',' or char == '}') then
-        _c_gather = nil; if _c_name then control[_c_name] = _c_val end;
-        _cond_gather = nil; if _c_name then condition[_c_name] = _cond_val end;
+        _c_gather = nil; _cond_gather = nil;
+        if _c_name then
+            control[_c_name] = _c_val
+            condition[_c_name] = condition[_c_name] or {}
+            if not _cond_val then condition[_c_name].value = _c_val
+            else table.insert(condition[_c_name], { condition = _cond_val, value = _c_val }) end
+        end
         _c_name = nil; _c_val = nil; _cond_val = nil;
         if char == '}' then _c = nil end
 
