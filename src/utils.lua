@@ -2865,8 +2865,14 @@ end
 
 function SMODS.localize_box(lines, args)
     args.vars = args.vars or {}
+    args.vars.conditions = args.vars.conditions or {}
     local final_line = {}
     for _, part in ipairs(lines) do
+        part.control = {}
+        for k, v in pairs(part.control_snapshot) do
+            if not part.condition[k] or args.vars.conditions[tonumber(part.condition[k])] then part.control[k] = v end
+        end
+
         if part.control.element then
             local elem = (args.vars.elements or {})[tonumber(part.control.element)]
             final_line[#final_line+1] = SMODS.process_loc_element(elem)
