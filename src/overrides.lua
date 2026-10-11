@@ -3169,7 +3169,7 @@ function loc_parse_string(line)
         if _c_name then
             control[_c_name] = _c_val
             condition[_c_name] = condition[_c_name] or {}
-            if not _cond_val then condition[_c_name].value = _c_val
+            if not _cond_val then condition[_c_name] = { value = _c_val }
             else table.insert(condition[_c_name], { condition = _cond_val, value = _c_val }) end
         end
         _c_name = nil; _c_val = nil; _cond_val = nil;
