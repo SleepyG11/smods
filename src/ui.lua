@@ -57,12 +57,6 @@ function SMODS.reload_stencil_stack(full)
     end
 end
 
-local gameDrawRef = Game.draw
-function Game:draw(...)
-    SMODS.reset_stencil_stack()
-    gameDrawRef(self, ...)
-end
-
 local old_get_canvas = love.graphics.getCanvas
 function love.graphics.getCanvas(...)
     local r = old_get_canvas(...)
